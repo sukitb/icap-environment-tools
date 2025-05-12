@@ -1,0 +1,6 @@
+@if (imageSrc()) {
+  <img [src]="imageSrc()" [style.width.px]="75" [style.height.px]="100" />
+} @else {
+  <nz-avatar nzIcon="user" [nzSize]="100" nzShape="square" class="group-avatar">
+  </nz-avatar>
+}

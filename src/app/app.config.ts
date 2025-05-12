@@ -12,8 +12,14 @@ import th from '@angular/common/locales/th';
 import { FormsModule } from '@angular/forms';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient } from '@angular/common/http';
+import { provideAngularSvgIcon } from 'angular-svg-icon';
+import { DeleteOutline } from '@ant-design/icons-angular/icons';
+import { IconDefinition } from '@ant-design/icons-angular';
+import { provideNzIcons } from 'ng-zorro-antd/icon';
 
 registerLocaleData(th);
+
+const icons: IconDefinition[] = [DeleteOutline];
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,5 +29,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(FormsModule),
     provideAnimationsAsync(),
     provideHttpClient(),
+    provideAngularSvgIcon(),
+    provideNzIcons(icons),
   ],
 };

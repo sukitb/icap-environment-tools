@@ -5,7 +5,7 @@ export interface Student {
   prefix: StudentPrefix;
   firstName: string;
   lastName: string;
-  nickname: string;
+  nickName: string;
   image: string;
   imageRound: string;
 }

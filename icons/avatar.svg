@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 100" width="75" height="100">
+  <!-- Background -->
+  <rect x="0" y="0" width="75" height="100" rx="10" ry="10" fill="#e0e0e0" />
+  
+  <!-- Head -->
+  <circle cx="37.5" cy="30" r="20" fill="#a0a0a0" />
+  
+  <!-- Body -->
+  <path d="M37.5,50 C25,50 15,60 15,85 L60,85 C60,60 50,50 37.5,50 Z" fill="#a0a0a0" />
+  
+  <!-- Details: eyes, mouth as negative space -->
+  <circle cx="30" cy="28" r="3" fill="#e0e0e0" />
+  <circle cx="45" cy="28" r="3" fill="#e0e0e0" />
+  <path d="M30,40 Q37.5,45 45,40" fill="none" stroke="#e0e0e0" stroke-width="2" stroke-linecap="round" />
+</svg>

@@ -79,7 +79,6 @@ import { StudentGroup } from '../../models/student-group.model';
                   [ngModel]="groupName()"
                   (ngModelChange)="onGroupNameChange($event)"
                   name="groupName"
-                  required
                 />
               </nz-form-control>
             </nz-form-item>

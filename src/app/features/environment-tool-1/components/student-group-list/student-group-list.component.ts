@@ -1,218 +1,266 @@
+import { StudentGroupEnvironmentGenerateService } from './../../services/student-group-environment-generate.service';
+import { StudentGroupFileService } from './../../services/student-group-file.service';
 import {
   Component,
-  effect,
-  Inject,
-  Signal,
+  ElementRef,
   signal,
+  ViewChild,
   WritableSignal,
 } from '@angular/core';
 import { StudentGroup } from '../../models/student-group.model';
 import { StudentGroupContainerComponent } from '../student-group-container/student-group-container.component';
-import { StudentPrefix } from '../../models/student-prefix.enum';
-import { mockStudents } from '../student-grid/grid-config/students.mock';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { JsonPipe } from '@angular/common';
-
+import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 @Component({
   selector: 'app-student-group-list',
-  imports: [StudentGroupContainerComponent],
+  imports: [
+    StudentGroupContainerComponent,
+    NzPageHeaderModule,
+    NzSpaceModule,
+    NzDropDownModule,
+    NzIconModule,
+  ],
   providers: [NzMessageService, NzModalService],
-  template: ` @for (
-    group of studentGroups();
-    track group.id;
-    let idx = $index
-  ) {
-    <div class="group-item"></div>
-    <app-student-group-container
-      [groupNo]="idx + 1"
-      [groupId]="group.id"
-      [groupName]="group.name"
-      [groupImage]="group.image"
-      [students]="group.students"
-      (groupChange)="onGroupChange($event)"
-    ></app-student-group-container>
-    <div class="actions-container">
-      <button nz-button nzType="primary" (click)="saveAllGroups()">
-        <span nz-icon nzType="download"></span>บันทึกเป็น JSON
-      </button>
-
-      <button nz-button (click)="fileInput.click()">
-        <span nz-icon nzType="upload"></span>นำเข้าจาก JSON
-      </button>
-      <input
-        type="file"
-        style="display: none"
-        accept=".json"
-        (change)="importFromJson($event)"
-        #fileInput
-      />
+  template: `
+    <div class="fixed-header" #header>
+      <nz-page-header
+        class="site-page-header"
+        nzTitle="การจัดกลุ่มนักเรียน"
+        [nzGhost]="false"
+      >
+        <nz-page-header-extra>
+          <nz-space>
+            <button
+              *nzSpaceItem
+              nz-button
+              nzType="primary"
+              (click)="saveAllGroups()"
+            >
+              <span nz-icon nzType="download"></span> บันทึก JSON
+            </button>
+            <button *nzSpaceItem nz-button (click)="fileInput.click()">
+              <span nz-icon nzType="upload"></span> นำเข้า JSON
+            </button>
+            <input
+              type="file"
+              style="display: none"
+              accept=".json"
+              (change)="importFromJson($event)"
+              #fileInput
+            />
+            <!-- <button *nzSpaceItem nz-button nzType="default" (click)="getPdf()">
+              <span nz-icon nzType="file-pdf"></span> กลุ่ม
+            </button>
+            <button *nzSpaceItem nz-button nzType="default" (click)="getPdf()">
+              <span nz-icon nzType="file-pdf"></span>
+            </button> -->
+            <button
+              *nzSpaceItem
+              nz-button
+              nz-dropdown
+              [nzDropdownMenu]="pdfMenu"
+              nzPlacement="bottomRight"
+            >
+              <span nz-icon nzType="file-pdf"></span> ดาวน์โหลด PDF
+              <nz-icon nzType="down" />
+            </button>
+            <nz-dropdown-menu #pdfMenu="nzDropdownMenu">
+              <ul nz-menu>
+                <li nz-menu-item (click)="getPdf('env-01')">แบบฟอร์ม EN-01</li>
+                <li nz-menu-item (click)="getPdf('env-02')">แบบฟอร์ม EN-02</li>
+                <li nz-menu-item (click)="getPdf('env-03')">แบบฟอร์ม EN-03</li>
+                <li nz-menu-item (click)="getPdf('env-04')">แบบฟอร์ม EN-04</li>
+              </ul>
+            </nz-dropdown-menu>
+          </nz-space>
+        </nz-page-header-extra>
+      </nz-page-header>
     </div>
-  }`,
-  styleUrl: './student-group-list.component.css',
+
+    <div class="page-container" #pageContainer>
+      <div class="page-content">
+        @for (group of studentGroups(); track group.id; let idx = $index) {
+          <div class="group-item">
+            <app-student-group-container
+              [groupNo]="idx + 1"
+              [groupId]="group.id"
+              [groupName]="group.name"
+              [groupImage]="group.image"
+              [students]="group.students"
+              (groupChange)="onGroupChange($event)"
+            ></app-student-group-container>
+          </div>
+        }
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      .fixed-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        background-color: #fff;
+      }
+
+      .site-page-header {
+        background-color: #fff;
+        padding: 16px 24px;
+      }
+
+      .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Sarabun', sans-serif;
+        margin-top: 80px;
+      }
+
+      .page-content {
+        margin-bottom: 40px;
+      }
+
+      .group-item {
+        margin-bottom: 30px;
+      }
+
+      @media (max-width: 768px) {
+        .site-page-header {
+          padding: 12px 16px;
+        }
+
+        .page-container {
+          padding: 12px;
+          margin-top: 110px;
+        }
+      }
+    `,
+  ],
 })
 export class StudentGroupListComponent {
   private latestGroupData: Map<string, StudentGroup> = new Map();
+  @ViewChild('header') headerElement!: ElementRef;
+  @ViewChild('pageContainer') pageContainer!: ElementRef;
 
   constructor(
     private message: NzMessageService,
     private modalService: NzModalService,
-  ) {
-    effect(() => {
-      console.log('Student groups updated:', this.studentGroups());
-    });
-  }
+    private studentGroupFileService: StudentGroupFileService,
+    private studentGroupEnvironmentGenerateService: StudentGroupEnvironmentGenerateService,
+  ) {}
 
-  studentGroups: WritableSignal<StudentGroup[]> = signal([
-    {
-      id: '1',
-      name: 'สวัสดีครับ',
-      image: '',
-      students: [],
-    },
-    {
-      id: '2',
-      name: 'กลุ่มที่ 2',
-      image: '',
-      students: [],
-    },
-  ]);
+  studentGroups: WritableSignal<StudentGroup[]> = signal([]);
 
   ngOnInit() {
-    // Initialize the map with the initial data
-    this.studentGroups().forEach((group) => {
-      this.latestGroupData.set(group.id, {
-        ...group,
-        students: [...group.students],
-      });
-    });
+    // this.studentGroups().forEach((group) => {
+    //   this.latestGroupData.set(group.id, {
+    //     ...group,
+    //     students: [...group.students],
+    //   });
+    // });
+    this.studentGroups.set(this.getInitialRowData());
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      const headerHeight = this.headerElement.nativeElement.offsetHeight;
+      const containerElement = this.pageContainer.nativeElement as HTMLElement;
+      containerElement.style.marginTop = `${headerHeight + 15}px`;
+    }, 0);
+  }
+
+  getInitialRowData(): StudentGroup[] {
+    const groupCount = 5;
+    let initialRowData: StudentGroup[] = [];
+    for (let i = 0; i < groupCount; i++) {
+      const group: StudentGroup = {
+        id: (i + 1).toString(),
+        name: '',
+        image: '',
+        students: [],
+      };
+      initialRowData.push(group);
+    }
+    return initialRowData;
   }
 
   onGroupChange(updatedGroup: StudentGroup): void {
-    // Update our tracking map
     this.latestGroupData.set(updatedGroup.id, updatedGroup);
   }
 
-  // Method to get all the latest data
   getAllGroups(): StudentGroup[] {
+    // Get the current groups from the signal
+    const currentGroups = this.studentGroups();
+
+    // Make sure all current groups are in the latestGroupData Map
+    currentGroups.forEach((group) => {
+      if (!this.latestGroupData.has(group.id)) {
+        // If a group hasn't been edited yet, add it to the map
+        this.latestGroupData.set(group.id, {
+          ...group,
+          students: [...group.students],
+        });
+      }
+    });
+
+    // Return all groups from the map
     return Array.from(this.latestGroupData.values());
   }
 
   saveAllGroups(): void {
-    try {
-      const allGroups = this.getAllGroups();
+    const allGroups = this.getAllGroups();
 
-      // Create a JSON string with proper formatting
-      const jsonString = JSON.stringify(allGroups, null, 2);
-
-      // Create a blob with the JSON data
-      const blob = new Blob([jsonString], { type: 'application/json' });
-
-      // Create a download URL
-      const url = window.URL.createObjectURL(blob);
-
-      // Create a temporary link element
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `student-groups-${new Date().toISOString().split('T')[0]}.json`;
-
-      // Trigger the download
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
-
-      this.message.success('บันทึกข้อมูลสำเร็จ');
-    } catch (error) {
-      console.error('Error exporting JSON:', error);
-      this.message.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-    }
+    this.studentGroupFileService.saveGroupsToJson(allGroups);
   }
 
-  // Import data from JSON file
   importFromJson(event: any): void {
     const file = event.target.files[0];
     if (!file) return;
-
-    // Reset the file input to allow selecting the same file again
     event.target.value = '';
-
-    // Check file type
-    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
-      this.message.error('กรุณาเลือกไฟล์ JSON เท่านั้น');
-      return;
-    }
-
-    // Confirm import
     this.modalService.confirm({
       nzTitle: 'ยืนยันการนำเข้าข้อมูล',
       nzContent:
         'การนำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด คุณต้องการดำเนินการต่อหรือไม่?',
       nzOkText: 'ดำเนินการต่อ',
       nzCancelText: 'ยกเลิก',
-      nzOnOk: () => this.processJsonFile(file),
+      nzOnOk: () => this.processImport(file),
     });
   }
 
-  private processJsonFile(file: File): void {
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      try {
-        const jsonData = JSON.parse(e.target.result);
-
-        // Validate the JSON structure
-        if (!Array.isArray(jsonData)) {
-          throw new Error('ข้อมูลต้องอยู่ในรูปแบบ Array');
-        }
-
-        // Basic validation of group structure
-        for (const group of jsonData) {
-          if (!group.id || !group.name || !Array.isArray(group.students)) {
-            throw new Error('โครงสร้างข้อมูลไม่ถูกต้อง');
-          }
-
-          // Validate student structure
-          for (const student of group.students) {
-            if (!student.id || !student.firstName || !student.lastName) {
-              throw new Error('โครงสร้างข้อมูลนักเรียนไม่ถูกต้อง');
-            }
-          }
-        }
-
-        // Reset existing data
+  private processImport(file: File): void {
+    this.studentGroupFileService.processJsonFile(file).subscribe({
+      next: (groups: StudentGroup[]) => {
         this.latestGroupData.clear();
+        this.studentGroups.update(() => groups);
 
-        console.log('Imported JSON data:', jsonData);
-
-        // Update the student groups with the imported data
-        this.studentGroups.update(() => jsonData);
-
-        // Reinitialize the map
         this.studentGroups().forEach((group) => {
           this.latestGroupData.set(group.id, {
             ...group,
             students: [...group.students],
           });
         });
+      },
+      error: (error) => console.error('Import error:', error),
+    });
+  }
 
-        this.message.success('นำเข้าข้อมูลสำเร็จ');
-      } catch (error) {
-        console.error('Error importing JSON:', error);
-        this.message.error(
-          error instanceof Error
-            ? error.message
-            : 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล',
-        );
-      }
-    };
-
-    reader.onerror = () => {
-      this.message.error('เกิดข้อผิดพลาดในการอ่านไฟล์');
-    };
-
-    reader.readAsText(file);
+  getPdf(envType: 'env-01' | 'env-02' | 'env-03' | 'env-04'): void {
+    const allGroups = this.getAllGroups();
+    if (envType === 'env-01') {
+      this.studentGroupEnvironmentGenerateService.generateEnv01Pdf(allGroups);
+    } else if (envType === 'env-02') {
+      this.studentGroupEnvironmentGenerateService.generateEnv02Pdf(allGroups);
+    } else if (envType === 'env-03') {
+      this.studentGroupEnvironmentGenerateService.generateEnv03Pdf(allGroups);
+    } else if (envType === 'env-04') {
+      this.studentGroupEnvironmentGenerateService.generateEnv04Pdf(allGroups);
+    }
   }
 }

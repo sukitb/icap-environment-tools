@@ -22,6 +22,7 @@ export const getStudentColumnDefs = (
         alignItems: 'center',
         justifyContent: 'center',
       },
+      width: 100,
     },
     {
       headerName: 'รูปวงกลม',
@@ -33,6 +34,7 @@ export const getStudentColumnDefs = (
         alignItems: 'center',
         justifyContent: 'center',
       },
+      width: 120,
     },
     {
       headerName: 'คำนำหน้า',
@@ -48,6 +50,7 @@ export const getStudentColumnDefs = (
         display: 'flex',
         alignItems: 'center',
       },
+      width: 100,
     },
     {
       headerName: 'ชื่อ',

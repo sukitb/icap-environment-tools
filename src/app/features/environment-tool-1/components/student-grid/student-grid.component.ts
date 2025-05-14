@@ -33,7 +33,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 })
 export class StudentGridComponent {
   students = model<Student[]>([]);
-  @Output() studentsChange = new EventEmitter<Student[]>();
+  // @Output() studentsChange = new EventEmitter<Student[]>();
 
   groupName: string = '';
 
@@ -50,20 +50,20 @@ export class StudentGridComponent {
 
   private emitChanges(): void {
     // Get current data from grid
-    const currentData: Student[] = [];
-    this.gridApi.forEachNode((node) => {
-      if (node.data) {
-        currentData.push(node.data);
-      }
-    });
-    this.studentsChange.emit(currentData);
+    // const currentData: Student[] = [];
+    // this.gridApi.forEachNode((node) => {
+    //   if (node.data) {
+    //     currentData.push(node.data);
+    //   }
+    // });
+    // this.studentsChange.emit(currentData);
   }
 
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
-    this.gridApi.addEventListener('cellValueChanged', () => {
-      this.emitChanges();
-    });
+    // this.gridApi.addEventListener('cellValueChanged', () => {
+    //   this.emitChanges();
+    // });
   }
 
   onExport() {
@@ -74,8 +74,8 @@ export class StudentGridComponent {
   }
 
   onCellValueChanged(event: any) {
-    this.gridApi.refreshCells();
-    this.emitChanges();
+    // this.gridApi.refreshCells();
+    // this.emitChanges();
   }
 
   onAddRow() {
@@ -89,14 +89,14 @@ export class StudentGridComponent {
       nickName: '',
     };
     this.gridApi.applyTransaction({ add: [newRow] });
-    this.emitChanges();
+    // this.emitChanges();
   }
 
   deleteRow(data: any) {
     const rowNode = this.gridApi.getRowNode(data.id);
     if (rowNode) {
       this.gridApi.applyTransaction({ remove: [rowNode.data] });
-      this.emitChanges();
+      // this.emitChanges();
     }
   }
 }

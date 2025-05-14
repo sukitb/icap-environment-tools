@@ -70,10 +70,10 @@ import { StudentGroup } from '../../models/student-group.model';
         </div>
 
         <div class="group-info">
-          <form nz-form [nzLayout]="'inline'">
-            <nz-form-item>
-              <nz-form-label>ชื่อกลุ่ม</nz-form-label>
-              <nz-form-control>
+          <form nz-form [nzLayout]="'vertical'">
+            <nz-form-item style="width: 100%">
+              <nz-form-label [nzSpan]="24">ชื่อกลุ่ม</nz-form-label>
+              <nz-form-control [nzSpan]="8">
                 <input
                   nz-input
                   [ngModel]="groupName()"
@@ -88,10 +88,7 @@ import { StudentGroup } from '../../models/student-group.model';
       </div>
 
       <div class="group-content">
-        <app-student-grid
-          [students]="students()"
-          (studentsChange)="onStudentsChange($event)"
-        ></app-student-grid>
+        <app-student-grid [students]="students()"></app-student-grid>
       </div>
     </nz-card>
   `,
@@ -194,10 +191,10 @@ export class StudentGroupContainerComponent {
     return `กลุ่มที่ ${this.groupNo()} : ${this.groupName()}`;
   });
 
-  onStudentsChange(updatedStudents: Student[]): void {
-    this.students.set(updatedStudents);
-    this.emitGroupChange();
-  }
+  // onStudentsChange(updatedStudents: Student[]): void {
+  //   this.students.set(updatedStudents);
+  //   this.emitGroupChange();
+  // }
 
   openImageUpload(): void {
     const modal = this.modalService.create({

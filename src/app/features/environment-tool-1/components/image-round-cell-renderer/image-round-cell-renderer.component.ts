@@ -7,7 +7,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 
 @Component({
   selector: 'app-image-round-cell-renderer',
-  imports: [NzAvatarModule, NzButtonModule, SvgIconComponent],
+  imports: [NzAvatarModule, NzButtonModule],
   template: `
     @if (imageSrc()) {
       <img [src]="imageSrc()" [style.width.px]="100" [style.height.px]="100" />

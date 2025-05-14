@@ -7,5 +7,7 @@
   [columnDefs]="columnDefs"
   (cellValueChanged)="onCellValueChanged($event)"
   (gridReady)="onGridReady($event)"
-  [gridOptions]="{}"
+  [gridOptions]="{
+    animateRows: false,
+  }"
 />

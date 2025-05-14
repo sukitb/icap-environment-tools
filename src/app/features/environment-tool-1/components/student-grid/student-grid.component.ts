@@ -16,11 +16,9 @@ import {
   ModuleRegistry,
   type ColDef,
 } from 'ag-grid-community'; // Column Definition Type Interface
-import { JsonPipe } from '@angular/common';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { StudentPrefix } from '../../models/student-prefix.enum';
 import { v4 as uuidv4 } from 'uuid';
-import { mockStudents } from './grid-config/students.mock';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -33,7 +31,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 })
 export class StudentGridComponent {
   students = model<Student[]>([]);
-  // @Output() studentsChange = new EventEmitter<Student[]>();
 
   groupName: string = '';
 
@@ -48,22 +45,8 @@ export class StudentGridComponent {
 
   getStudentsRowData() {}
 
-  private emitChanges(): void {
-    // Get current data from grid
-    // const currentData: Student[] = [];
-    // this.gridApi.forEachNode((node) => {
-    //   if (node.data) {
-    //     currentData.push(node.data);
-    //   }
-    // });
-    // this.studentsChange.emit(currentData);
-  }
-
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
-    // this.gridApi.addEventListener('cellValueChanged', () => {
-    //   this.emitChanges();
-    // });
   }
 
   onExport() {
@@ -73,10 +56,7 @@ export class StudentGridComponent {
     });
   }
 
-  onCellValueChanged(event: any) {
-    // this.gridApi.refreshCells();
-    // this.emitChanges();
-  }
+  onCellValueChanged(event: any) {}
 
   onAddRow() {
     const newRow: Student = {
@@ -89,14 +69,12 @@ export class StudentGridComponent {
       nickName: '',
     };
     this.gridApi.applyTransaction({ add: [newRow] });
-    // this.emitChanges();
   }
 
   deleteRow(data: any) {
     const rowNode = this.gridApi.getRowNode(data.id);
     if (rowNode) {
       this.gridApi.applyTransaction({ remove: [rowNode.data] });
-      // this.emitChanges();
     }
   }
 }

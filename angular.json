@@ -21,8 +21,7 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "public",
-                "output": "/"
+                "input": "public"
               },
               {
                 "glob": "**/*",

@@ -90,6 +90,10 @@ export const getStudentColumnDefs = (
       cellRendererParams: {
         onClick: onDeleteClick,
       },
+      cellStyle: {
+        display: 'flex',
+        alignItems: 'center',
+      },
     },
   ];
 };

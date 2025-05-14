@@ -9,6 +9,7 @@ import { Template } from '@pdfme/common';
 import { Student } from '../models/student.model';
 import { merge } from '@pdfme/manipulator'; // Add this import
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalRef } from 'ng-zorro-antd/modal';
 
 @Injectable({
   providedIn: 'root',

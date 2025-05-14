@@ -70,10 +70,16 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
             </button>
             <nz-dropdown-menu #pdfMenu="nzDropdownMenu">
               <ul nz-menu>
-                <li nz-menu-item (click)="getPdf('env-01')">แบบฟอร์ม EN-01</li>
-                <li nz-menu-item (click)="getPdf('env-02')">แบบฟอร์ม EN-02</li>
-                <li nz-menu-item (click)="getPdf('env-03')">แบบฟอร์ม EN-03</li>
-                <li nz-menu-item (click)="getPdf('env-04')">แบบฟอร์ม EN-04</li>
+                <li nz-menu-item (click)="getPdf('env-01')">กลุ่ม</li>
+                <li nz-menu-item (click)="getPdf('env-02')">
+                  รูปนักเรียนสี่เหลี่ยม
+                </li>
+                <li nz-menu-item (click)="getPdf('env-03')">
+                  รูปนักเรียนวงกลม
+                </li>
+                <li nz-menu-item (click)="getPdf('env-04')">
+                  รูปนักเรียน + กลุ่ม ขนาดใหญ่
+                </li>
               </ul>
             </nz-dropdown-menu>
           </nz-space>
@@ -251,16 +257,60 @@ export class StudentGroupListComponent {
     });
   }
 
-  getPdf(envType: 'env-01' | 'env-02' | 'env-03' | 'env-04'): void {
+  async getPdf(
+    envType: 'env-01' | 'env-02' | 'env-03' | 'env-04',
+  ): Promise<void> {
     const allGroups = this.getAllGroups();
-    if (envType === 'env-01') {
-      this.studentGroupEnvironmentGenerateService.generateEnv01Pdf(allGroups);
-    } else if (envType === 'env-02') {
-      this.studentGroupEnvironmentGenerateService.generateEnv02Pdf(allGroups);
-    } else if (envType === 'env-03') {
-      this.studentGroupEnvironmentGenerateService.generateEnv03Pdf(allGroups);
-    } else if (envType === 'env-04') {
-      this.studentGroupEnvironmentGenerateService.generateEnv04Pdf(allGroups);
+
+    // Create a map of form types to their Thai names for better messages
+    const formNames = {
+      'env-01': 'กลุ่ม',
+      'env-02': 'รูปนักเรียนสี่เหลี่ยม',
+      'env-03': 'รูปนักเรียนวงกลม',
+      'env-04': 'รูปนักเรียน + กลุ่ม ขนาดใหญ่',
+    };
+
+    // Create loading message
+    const loadingMessage = this.message.loading(
+      `กำลังสร้าง ${formNames[envType]}...`,
+      { nzDuration: 0 }, // Set duration to 0 to persist until manually removed
+    ).messageId;
+
+    try {
+      // Call the appropriate PDF generation method
+      let result;
+      if (envType === 'env-01') {
+        result =
+          await this.studentGroupEnvironmentGenerateService.generateEnv01Pdf(
+            allGroups,
+          );
+      } else if (envType === 'env-02') {
+        result =
+          await this.studentGroupEnvironmentGenerateService.generateEnv02Pdf(
+            allGroups,
+          );
+      } else if (envType === 'env-03') {
+        result =
+          await this.studentGroupEnvironmentGenerateService.generateEnv03Pdf(
+            allGroups,
+          );
+      } else if (envType === 'env-04') {
+        result =
+          await this.studentGroupEnvironmentGenerateService.generateEnv04Pdf(
+            allGroups,
+          );
+      }
+
+      // Show success message if generation was successful
+      if (result) {
+        this.message.success(`${formNames[envType]} สร้างสำเร็จ`);
+      }
+    } catch (error) {
+      console.error(`Error generating ${envType}:`, error);
+      this.message.error(`เกิดข้อผิดพลาดในการสร้าง ${formNames[envType]}`);
+    } finally {
+      // Remove loading message regardless of success or failure
+      this.message.remove(loadingMessage);
     }
   }
 }

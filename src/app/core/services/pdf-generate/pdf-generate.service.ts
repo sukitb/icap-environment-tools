@@ -43,7 +43,7 @@ export class PdfGenerateService {
     inputs: Record<string, any>[],
   ): Promise<Blob> {
     // load font from assets
-    const fontUrl = '/fonts/Sarabun-Regular.ttf';
+    const fontUrl = 'fonts/Sarabun-Regular.ttf';
     const fontResponse = await fetch(fontUrl);
 
     if (!fontResponse.ok) {

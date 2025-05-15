@@ -3,8 +3,10 @@ import { StudentGroupFileService } from './../../services/student-group-file.ser
 import {
   Component,
   ElementRef,
+  QueryList,
   signal,
   ViewChild,
+  ViewChildren,
   WritableSignal,
 } from '@angular/core';
 import { StudentGroup } from '../../models/student-group.model';
@@ -96,7 +98,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
               [groupId]="group.id"
               [groupName]="group.name"
               [groupImage]="group.image"
-              [students]="group.students"
+              [(students)]="group.students"
               (groupChange)="onGroupChange($event)"
             ></app-student-group-container>
           </div>
@@ -163,6 +165,8 @@ export class StudentGroupListComponent {
   ) {}
 
   studentGroups: WritableSignal<StudentGroup[]> = signal([]);
+  @ViewChildren(StudentGroupContainerComponent)
+  groupContainers!: QueryList<StudentGroupContainerComponent>;
 
   ngOnInit() {
     // this.studentGroups().forEach((group) => {
@@ -198,31 +202,34 @@ export class StudentGroupListComponent {
   }
 
   onGroupChange(updatedGroup: StudentGroup): void {
-    this.latestGroupData.set(updatedGroup.id, updatedGroup);
+    const existingGroup = this.latestGroupData.get(updatedGroup.id) || {
+      id: updatedGroup.id,
+      name: '',
+      image: '',
+      students: [],
+    };
+
+    // Only update the name and image
+    existingGroup.name = updatedGroup.name;
+    existingGroup.image = updatedGroup.image;
+
+    // Store in map
+    this.latestGroupData.set(updatedGroup.id, existingGroup);
   }
 
   getAllGroups(): StudentGroup[] {
-    // Get the current groups from the signal
-    const currentGroups = this.studentGroups();
+    if (!this.groupContainers) {
+      return [];
+    }
 
-    // Make sure all current groups are in the latestGroupData Map
-    currentGroups.forEach((group) => {
-      if (!this.latestGroupData.has(group.id)) {
-        // If a group hasn't been edited yet, add it to the map
-        this.latestGroupData.set(group.id, {
-          ...group,
-          students: [...group.students],
-        });
-      }
-    });
-
-    // Return all groups from the map
-    return Array.from(this.latestGroupData.values());
+    // Get current data from all group containers
+    return this.groupContainers.map((container) =>
+      container.getCurrentGroupData(),
+    );
   }
 
   saveAllGroups(): void {
     const allGroups = this.getAllGroups();
-
     this.studentGroupFileService.saveGroupsToJson(allGroups);
   }
 

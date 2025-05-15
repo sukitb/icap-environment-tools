@@ -8,6 +8,7 @@ import {
   model,
   Output,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { StudentGridComponent } from '../student-grid/student-grid.component';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -87,7 +88,10 @@ import { StudentGroup } from '../../models/student-group.model';
       </div>
 
       <div class="group-content">
-        <app-student-grid [students]="students()"></app-student-grid>
+        <app-student-grid
+          [students]="students()"
+          (studentsChange)="onStudentsChange($event)"
+        ></app-student-grid>
       </div>
     </nz-card>
   `,
@@ -163,6 +167,7 @@ export class StudentGroupContainerComponent {
   students = model<Student[]>([]);
 
   @Output() groupChange = new EventEmitter<StudentGroup>();
+  @ViewChild(StudentGridComponent) studentGridComponent!: StudentGridComponent;
 
   constructor(private modalService: NzModalService) {}
 
@@ -177,8 +182,20 @@ export class StudentGroupContainerComponent {
       id: this.groupId(),
       name: this.groupName(),
       image: this.groupImage(),
-      students: this.students(),
+      students: [], // Don't send students on every change
     });
+  }
+
+  getCurrentGroupData(): StudentGroup {
+    return {
+      id: this.groupId(),
+      name: this.groupName(),
+      image: this.groupImage(),
+      // Get the current students directly from the grid
+      students: this.studentGridComponent
+        ? this.studentGridComponent.getCurrentStudents()
+        : [],
+    };
   }
 
   onGroupNameChange(name: string): void {
@@ -190,10 +207,10 @@ export class StudentGroupContainerComponent {
     return `กลุ่มที่ ${this.groupNo()} : ${this.groupName()}`;
   });
 
-  // onStudentsChange(updatedStudents: Student[]): void {
-  //   this.students.set(updatedStudents);
-  //   this.emitGroupChange();
-  // }
+  onStudentsChange(updatedStudents: Student[]): void {
+    this.students.set(updatedStudents);
+    this.emitGroupChange();
+  }
 
   openImageUpload(): void {
     const modal = this.modalService.create({

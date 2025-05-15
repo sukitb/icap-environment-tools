@@ -5,6 +5,7 @@ import {
   model,
   Output,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { Student } from '../../models/student.model';
 import { getStudentColumnDefs } from './grid-config/student-grid.config';
@@ -43,8 +44,6 @@ export class StudentGridComponent {
     this.columnDefs = getStudentColumnDefs(this.deleteRow.bind(this));
   }
 
-  getStudentsRowData() {}
-
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
   }
@@ -56,7 +55,25 @@ export class StudentGridComponent {
     });
   }
 
-  onCellValueChanged(event: any) {}
+  // New method to get current grid data
+  getCurrentStudents(): Student[] {
+    if (!this.gridApi) return [];
+
+    // Get all rows from the grid
+    const rowData: Student[] = [];
+    this.gridApi.forEachNode((node) => {
+      if (node.data) {
+        rowData.push(node.data);
+      }
+    });
+
+    return rowData;
+  }
+
+  onCellValueChanged(event: any) {
+    // Remove any data emitting code here
+    // The data will stay in the grid without notifying parent
+  }
 
   onAddRow() {
     const newRow: Student = {

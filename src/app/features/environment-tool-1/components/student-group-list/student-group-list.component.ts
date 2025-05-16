@@ -17,6 +17,7 @@ import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 @Component({
   selector: 'app-student-group-list',
   imports: [
@@ -25,6 +26,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     NzSpaceModule,
     NzDropDownModule,
     NzIconModule,
+    NzButtonModule,
   ],
   providers: [NzMessageService, NzModalService],
   template: `
@@ -39,13 +41,18 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
             <button
               *nzSpaceItem
               nz-button
-              nzType="primary"
+              nzType="default"
               (click)="saveAllGroups()"
             >
-              <span nz-icon nzType="download"></span> บันทึก JSON
+              <span nz-icon nzType="download"></span> บันทึกข้อมูล (.json)
             </button>
-            <button *nzSpaceItem nz-button (click)="fileInput.click()">
-              <span nz-icon nzType="upload"></span> นำเข้า JSON
+            <button
+              *nzSpaceItem
+              nz-button
+              nzType="default"
+              (click)="fileInput.click()"
+            >
+              <span nz-icon nzType="upload"></span> นำเข้าข้อมูล (.json)
             </button>
             <input
               type="file"
@@ -60,19 +67,22 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
             <button *nzSpaceItem nz-button nzType="default" (click)="getPdf()">
               <span nz-icon nzType="file-pdf"></span>
             </button> -->
+
             <button
               *nzSpaceItem
               nz-button
               nz-dropdown
               [nzDropdownMenu]="pdfMenu"
               nzPlacement="bottomRight"
+              nzType="primary"
+              style="background-color: #008000;border-color: #008000"
             >
-              <span nz-icon nzType="file-pdf"></span> ดาวน์โหลด PDF
+              <span nz-icon nzType="file-pdf"></span> ดาวน์โหลดเอกสาร (.pdf)
               <nz-icon nzType="down" />
             </button>
             <nz-dropdown-menu #pdfMenu="nzDropdownMenu">
               <ul nz-menu>
-                <li nz-menu-item (click)="getPdf('env-01')">กลุ่ม</li>
+                <li nz-menu-item (click)="getPdf('env-01')">รูปกลุ่ม</li>
                 <li nz-menu-item (click)="getPdf('env-02')">
                   รูปนักเรียนสี่เหลี่ยม
                 </li>
@@ -169,12 +179,6 @@ export class StudentGroupListComponent {
   groupContainers!: QueryList<StudentGroupContainerComponent>;
 
   ngOnInit() {
-    // this.studentGroups().forEach((group) => {
-    //   this.latestGroupData.set(group.id, {
-    //     ...group,
-    //     students: [...group.students],
-    //   });
-    // });
     this.studentGroups.set(this.getInitialRowData());
   }
 
@@ -251,6 +255,7 @@ export class StudentGroupListComponent {
     this.studentGroupFileService.processJsonFile(file).subscribe({
       next: (groups: StudentGroup[]) => {
         this.latestGroupData.clear();
+        console.log('Imported groups:', groups);
         this.studentGroups.update(() => groups);
 
         this.studentGroups().forEach((group) => {

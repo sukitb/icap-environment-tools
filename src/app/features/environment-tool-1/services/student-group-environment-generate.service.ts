@@ -5,6 +5,7 @@ import env01Template from '../pdf-template/env-01.json';
 import env02Template from '../pdf-template/env-02.json';
 import env03Template from '../pdf-template/env-03.json';
 import env04Template from '../pdf-template/env-04.json';
+import env01v2Template from '../pdf-template/env-01v2.json';
 import { Template } from '@pdfme/common';
 import { Student } from '../models/student.model';
 import { merge } from '@pdfme/manipulator'; // Add this import
@@ -21,9 +22,9 @@ export class StudentGroupEnvironmentGenerateService {
   ) {}
 
   async generateEnv01Pdf(studentGroups: StudentGroup[]) {
-    const template = env01Template;
+    const template = env01v2Template;
     const inputs = this.transformStudentGroupsToEn01Inputs(studentGroups);
-    const name = `env-01-${new Date().toISOString().split('T')[0]}`;
+    const name = `รูปกลุ่ม`;
     const result = await this.pdfGenerateService.generatePdf(
       template,
       [inputs],
@@ -42,7 +43,7 @@ export class StudentGroupEnvironmentGenerateService {
     // Note: now we're getting an array of input objects (one per page)
     const paginatedInputs =
       await this.transformStudentGroupsToEn02Inputs(studentGroups);
-    const name = `env-02-${new Date().toISOString().split('T')[0]}`;
+    const name = `รูปนักเรียนสี่เหลี่ยม`;
 
     console.log('Paginated Inputs:', paginatedInputs);
 
@@ -90,7 +91,7 @@ export class StudentGroupEnvironmentGenerateService {
     // Note: now we're getting an array of input objects (one per page)
     const paginatedInputs =
       await this.transformStudentGroupsToEn03Inputs(studentGroups);
-    const name = `env-03-${new Date().toISOString().split('T')[0]}`;
+    const name = `รูปนักเรียนวงกลม`;
 
     console.log('Paginated Inputs:', paginatedInputs);
     if (!paginatedInputs || paginatedInputs.length === 0) {
@@ -165,7 +166,10 @@ export class StudentGroupEnvironmentGenerateService {
       });
 
       // Download the merged PDF
-      this.pdfGenerateService.downloadBlob(mergedPdfBlob, `${name}.pdf`);
+      this.pdfGenerateService.downloadBlob(
+        mergedPdfBlob,
+        `รูปนักเรียน + กลุ่ม ขนาดใหญ่.pdf`,
+      );
 
       console.log('Successfully merged and downloaded PDF');
       return true;

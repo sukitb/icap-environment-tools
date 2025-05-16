@@ -1,5 +1,5 @@
 <div nz-flex [nzJustify]="'flex-end'" style="margin-bottom: 1rem">
-  <button nz-button nzType="primary" (click)="onAddRow()">
+  <button nz-button nzType="default" (click)="onAddRow()">
     <span nz-icon nzType="plus"></span> เพิ่มนักเรียน
   </button>
   <!-- <button
@@ -15,17 +15,17 @@
 <form [formGroup]="studentsForm">
   <nz-table
     #basicTable
-    [nzData]="getStudentForms()"
     [nzFrontPagination]="false"
     [nzBordered]="true"
     [nzSize]="'middle'"
     [nzScroll]="{ x: '1100px' }"
+    [nzTemplateMode]="true"
   >
     <thead>
       <tr>
         <th nzWidth="100px">รูป</th>
         <th nzWidth="120px">รูปวงกลม</th>
-        <th >คำนำหน้า</th>
+        <th nzWidth="120px">คำนำหน้า</th>
         <th>ชื่อ</th>
         <th>นามสกุล</th>
         <th nzWidth="100px">ชื่อเล่น</th>
@@ -52,6 +52,8 @@
               class="upload-button"
               (click)="openImageUpload(i, false)"
               type="button"
+              nz-tooltip
+              nzTooltipTitle="อัปโหลดรูปนักเรียน"
             >
               <span nz-icon nzType="camera"></span>
             </button>
@@ -65,16 +67,6 @@
               class="student-image round-image"
               alt="รูปวงกลม"
             />
-            <!-- <button
-              nz-button
-              nzType="default"
-              nzShape="circle"
-              class="upload-button"
-              (click)="openImageUpload(i, true)"
-              type="button"
-            >
-              <span nz-icon nzType="camera"></span>
-            </button> -->
           </div>
         </td>
         <td>

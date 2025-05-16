@@ -7,6 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { CommonModule } from '@angular/common';
 import { StudentPrefix } from '../../models/student-prefix.enum';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,6 +31,7 @@ import {
     NzInputModule,
     NzSelectModule,
     NzIconModule,
+    NzToolTipModule,
   ],
   templateUrl: './student-grid.component.html',
   styleUrl: './student-grid.component.css',

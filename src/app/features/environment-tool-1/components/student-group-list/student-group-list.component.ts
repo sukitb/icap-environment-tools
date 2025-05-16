@@ -33,7 +33,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
     <div class="fixed-header" #header>
       <nz-page-header
         class="site-page-header"
-        nzTitle="การจัดกลุ่มนักเรียน"
+        nzTitle="เครื่องมือจัดสิ่งแวดล้อม"
         [nzGhost]="false"
       >
         <nz-page-header-extra>

@@ -6,6 +6,7 @@ import env02Template from '../pdf-template/env-02.json';
 import env03Template from '../pdf-template/env-03.json';
 import env04Template from '../pdf-template/env-04.json';
 import env01v2Template from '../pdf-template/env-01v2.json';
+import env04v2Template from '../pdf-template/env-04v2.json';
 import { Template } from '@pdfme/common';
 import { Student } from '../models/student.model';
 import { merge } from '@pdfme/manipulator'; // Add this import
@@ -134,7 +135,7 @@ export class StudentGroupEnvironmentGenerateService {
   }
 
   async generateEnv04Pdf(studentGroups: StudentGroup[]) {
-    const template = env04Template;
+    const template = env04v2Template;
     const paginatedInputs =
       await this.transformStudentGroupsToEn04Inputs(studentGroups);
 

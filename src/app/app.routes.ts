@@ -7,5 +7,6 @@ export const routes: Routes = [
       import(
         './features/environment-tool-1/components/student-group-list/student-group-list.component'
       ).then((m) => m.StudentGroupListComponent),
+    title: 'เครื่องมือช่วยจัดสิ่งแวดล้อม - ICAP',
   },
 ];

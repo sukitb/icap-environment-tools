@@ -2,14 +2,6 @@
   <button nz-button nzType="default" (click)="onAddRow()">
     <span nz-icon nzType="plus"></span> เพิ่มนักเรียน
   </button>
-  <!-- <button
-    nz-button
-    nzType="default"
-    (click)="onExport()"
-    style="margin-left: 8px"
-  >
-    <span nz-icon nzType="download"></span> ส่งออก CSV
-  </button> -->
 </div>
 
 <form [formGroup]="studentsForm">
@@ -18,18 +10,18 @@
     [nzFrontPagination]="false"
     [nzBordered]="true"
     [nzSize]="'middle'"
-    [nzScroll]="{ x: '1100px' }"
+    [nzScroll]="{ x: '768px' }"
     [nzTemplateMode]="true"
   >
     <thead>
       <tr>
-        <th nzWidth="100px">รูป</th>
-        <th nzWidth="120px">รูปวงกลม</th>
-        <th nzWidth="120px">คำนำหน้า</th>
+        <th>รูป</th>
+        <th>รูปวงกลม</th>
+        <th>คำนำหน้า</th>
         <th>ชื่อ</th>
         <th>นามสกุล</th>
-        <th nzWidth="100px">ชื่อเล่น</th>
-        <th nzWidth="70px">ลบ</th>
+        <th>ชื่อเล่น</th>
+        <th>ลบ</th>
       </tr>
     </thead>
     <tbody formArrayName="students">

@@ -82,7 +82,6 @@ export class StudentGroupFileService {
 
   private validateGroupData(groups: any[]): void {
     for (const group of groups) {
-      // Check if required keys exist in the group object
       if (!('id' in group) || !('name' in group) || !('students' in group)) {
         throw new Error('โครงสร้างข้อมูลไม่ถูกต้อง: ไม่พบ key ที่จำเป็น');
       }

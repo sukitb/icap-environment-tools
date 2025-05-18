@@ -1,11 +1,10 @@
+import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { StudentGroupEnvironmentGenerateService } from './../../services/student-group-environment-generate.service';
 import { StudentGroupFileService } from './../../services/student-group-file.service';
 import {
   Component,
-  ElementRef,
   QueryList,
   signal,
-  ViewChild,
   ViewChildren,
   WritableSignal,
 } from '@angular/core';
@@ -13,122 +12,159 @@ import { StudentGroup } from '../../models/student-group.model';
 import { StudentGroupContainerComponent } from '../student-group-container/student-group-container.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
-import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-student-group-list',
+  standalone: true,
   imports: [
+    CommonModule,
     StudentGroupContainerComponent,
-    NzPageHeaderModule,
-    NzSpaceModule,
     NzDropDownModule,
     NzIconModule,
+    NzButtonModule,
+    NzPageHeaderModule,
   ],
   providers: [NzMessageService, NzModalService],
   template: `
-    <div class="fixed-header" #header>
-      <nz-page-header
-        class="site-page-header"
-        nzTitle="การจัดกลุ่มนักเรียน"
-        [nzGhost]="false"
-      >
-        <nz-page-header-extra>
-          <nz-space>
-            <button
-              *nzSpaceItem
-              nz-button
-              nzType="primary"
-              (click)="saveAllGroups()"
-            >
-              <span nz-icon nzType="download"></span> บันทึก JSON
-            </button>
-            <button *nzSpaceItem nz-button (click)="fileInput.click()">
-              <span nz-icon nzType="upload"></span> นำเข้า JSON
-            </button>
-            <input
-              type="file"
-              style="display: none"
-              accept=".json"
-              (change)="importFromJson($event)"
-              #fileInput
-            />
-            <!-- <button *nzSpaceItem nz-button nzType="default" (click)="getPdf()">
-              <span nz-icon nzType="file-pdf"></span> กลุ่ม
-            </button>
-            <button *nzSpaceItem nz-button nzType="default" (click)="getPdf()">
-              <span nz-icon nzType="file-pdf"></span>
-            </button> -->
-            <button
-              *nzSpaceItem
-              nz-button
-              nz-dropdown
-              [nzDropdownMenu]="pdfMenu"
-              nzPlacement="bottomRight"
-            >
-              <span nz-icon nzType="file-pdf"></span> ดาวน์โหลด PDF
-              <nz-icon nzType="down" />
-            </button>
-            <nz-dropdown-menu #pdfMenu="nzDropdownMenu">
-              <ul nz-menu>
-                <li nz-menu-item (click)="getPdf('env-01')">กลุ่ม</li>
-                <li nz-menu-item (click)="getPdf('env-02')">
-                  รูปนักเรียนสี่เหลี่ยม
-                </li>
-                <li nz-menu-item (click)="getPdf('env-03')">
-                  รูปนักเรียนวงกลม
-                </li>
-                <li nz-menu-item (click)="getPdf('env-04')">
-                  รูปนักเรียน + กลุ่ม ขนาดใหญ่
-                </li>
-              </ul>
-            </nz-dropdown-menu>
-          </nz-space>
-        </nz-page-header-extra>
-      </nz-page-header>
-    </div>
+    <nz-page-header [nzTitle]="'เครื่องมือช่วยจัดสิ่งแวดล้อม'"></nz-page-header>
+    <div class="layout-container ">
+      <!-- Main content area - 90% width -->
+      <div class="content-area">
+        <div class="page-content">
+          @for (group of studentGroups(); track group.id; let idx = $index) {
+            <div class="group-item">
+              <app-student-group-container
+                [groupNo]="idx + 1"
+                [groupId]="group.id"
+                [groupName]="group.name"
+                [groupImage]="group.image"
+                [(students)]="group.students"
+                (groupChange)="onGroupChange($event)"
+              ></app-student-group-container>
+            </div>
+          }
+        </div>
+      </div>
 
-    <div class="page-container" #pageContainer>
-      <div class="page-content">
-        @for (group of studentGroups(); track group.id; let idx = $index) {
-          <div class="group-item">
-            <app-student-group-container
-              [groupNo]="idx + 1"
-              [groupId]="group.id"
-              [groupName]="group.name"
-              [groupImage]="group.image"
-              [(students)]="group.students"
-              (groupChange)="onGroupChange($event)"
-            ></app-student-group-container>
-          </div>
-        }
+      <!-- Sticky action sidebar - 10% width -->
+      <div class="action-sidebar">
+        <div class="action-buttons">
+          <button
+            nz-button
+            nzType="default"
+            (click)="saveAllGroups()"
+            class="action-button"
+          >
+            <span nz-icon nzType="save"></span>
+            <span class="button-text">บันทึกข้อมูล</span>
+          </button>
+
+          <button
+            nz-button
+            nzType="default"
+            (click)="fileInput.click()"
+            class="action-button"
+          >
+            <span nz-icon nzType="import"></span>
+            <span class="button-text">นำเข้าข้อมูล</span>
+          </button>
+
+          <input
+            type="file"
+            style="display: none"
+            accept=".json"
+            (change)="importFromJson($event)"
+            #fileInput
+          />
+
+          <button
+            nz-button
+            nz-dropdown
+            [nzDropdownMenu]="pdfMenu"
+            nzPlacement="bottomLeft"
+            nzType="primary"
+            class="action-button"
+          >
+            <span nz-icon nzType="file-pdf"></span>
+            <span class="button-text">ดาวน์โหลด PDF</span>
+          </button>
+
+          <nz-dropdown-menu #pdfMenu="nzDropdownMenu">
+            <ul nz-menu>
+              <li nz-menu-item (click)="getPdf('env-01')">รูปกลุ่ม</li>
+              <li nz-menu-item (click)="getPdf('env-02')">
+                รูปนักเรียนสี่เหลี่ยม
+              </li>
+              <li nz-menu-item (click)="getPdf('env-03')">รูปนักเรียนวงกลม</li>
+              <li nz-menu-item (click)="getPdf('env-04')">
+                รูปนักเรียน + กลุ่ม ขนาดใหญ่
+              </li>
+            </ul>
+          </nz-dropdown-menu>
+        </div>
       </div>
     </div>
   `,
   styles: [
     `
-      .fixed-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        background-color: #fff;
-      }
-
-      .site-page-header {
-        background-color: #fff;
-        padding: 16px 24px;
-      }
-
-      .page-container {
+      .layout-container {
+        display: flex;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
         font-family: 'Sarabun', sans-serif;
-        margin-top: 80px;
+        height: 100%;
+      }
+
+      .content-area {
+        flex: 0 0 90%;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .action-sidebar {
+        flex: 0 0 10%;
+        margin-top: 1rem;
+        position: sticky;
+        top: 16px;
+        align-self: flex-start;
+        background-color: #f5f5f5;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 180px); /* Account for header and footer */
+        overflow-y: auto;
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-direction: column;
+        padding: 20px 8px;
+        gap: 16px;
+      }
+
+      .action-button {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 0;
+        height: auto;
+      }
+
+      .action-button span[nz-icon] {
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+
+      .button-text {
+        font-size: 12px;
+        text-align: center;
       }
 
       .page-content {
@@ -140,13 +176,37 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
       }
 
       @media (max-width: 768px) {
-        .site-page-header {
-          padding: 12px 16px;
+        .layout-container {
+          flex-direction: column;
         }
 
-        .page-container {
+        .content-area {
+          flex: 1;
+          width: 100%;
           padding: 12px;
-          margin-top: 110px;
+        }
+
+        .action-sidebar {
+          width: 100%;
+          position: sticky;
+          bottom: 0;
+          top: auto;
+          height: auto;
+          flex: 0;
+          border-left: none;
+          border-top: 1px solid #e8e8e8;
+          z-index: 10;
+        }
+
+        .action-buttons {
+          flex-direction: row;
+          justify-content: space-around;
+          padding: 10px;
+        }
+
+        .action-button {
+          width: auto;
+          padding: 8px 12px;
         }
       }
     `,
@@ -154,8 +214,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 })
 export class StudentGroupListComponent {
   private latestGroupData: Map<string, StudentGroup> = new Map();
-  @ViewChild('header') headerElement!: ElementRef;
-  @ViewChild('pageContainer') pageContainer!: ElementRef;
 
   constructor(
     private message: NzMessageService,
@@ -169,21 +227,7 @@ export class StudentGroupListComponent {
   groupContainers!: QueryList<StudentGroupContainerComponent>;
 
   ngOnInit() {
-    // this.studentGroups().forEach((group) => {
-    //   this.latestGroupData.set(group.id, {
-    //     ...group,
-    //     students: [...group.students],
-    //   });
-    // });
     this.studentGroups.set(this.getInitialRowData());
-  }
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      const headerHeight = this.headerElement.nativeElement.offsetHeight;
-      const containerElement = this.pageContainer.nativeElement as HTMLElement;
-      containerElement.style.marginTop = `${headerHeight + 15}px`;
-    }, 0);
   }
 
   getInitialRowData(): StudentGroup[] {
@@ -251,6 +295,7 @@ export class StudentGroupListComponent {
     this.studentGroupFileService.processJsonFile(file).subscribe({
       next: (groups: StudentGroup[]) => {
         this.latestGroupData.clear();
+        console.log('Imported groups:', groups);
         this.studentGroups.update(() => groups);
 
         this.studentGroups().forEach((group) => {

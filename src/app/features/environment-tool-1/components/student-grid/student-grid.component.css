@@ -1,0 +1,57 @@
+.image-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.student-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  border-radius: 5%;
+}
+
+/* .square-image {
+  width: 80px;
+  height: 80px;
+} */
+
+.round-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+.upload-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  background-color: white;
+}
+
+/* If no image is present, center the upload button */
+.image-container:not(:has(img)) .upload-button {
+  position: static;
+}
+
+/* Fix for browsers that don't support :has() */
+.image-container:empty .upload-button {
+  position: static;
+}
+
+/* Ensure table cell spacing is consistent */
+td {
+  padding: 12px 8px !important;
+  vertical-align: middle !important;
+}
+
+/* Make inputs take up the full width of their cells */
+input,
+nz-select {
+  width: 100%;
+}

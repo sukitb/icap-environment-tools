@@ -1,4 +1,4 @@
 export enum StudentPrefix {
-  Mr = 'ด.ช.',
-  Miss = 'ด.ญ.',
+  Mr = 'เด็กชาย',
+  Miss = 'เด็กหญิง',
 }

@@ -1,17 +1,12 @@
-import { StudentGroup } from './../models/student-group.model';
+import { StudentGroup } from '../models/student-group.model';
 import { Injectable } from '@angular/core';
 import { PdfGenerateService } from '../../../core/services/pdf-generate/pdf-generate.service';
-import env01Template from '../pdf-template/env-01.json';
-import env02Template from '../pdf-template/env-02.json';
-import env03Template from '../pdf-template/env-03.json';
-import env04Template from '../pdf-template/env-04.json';
-import env01v2Template from '../pdf-template/env-01v2.json';
-import env04v2Template from '../pdf-template/env-04v2.json';
 import { Template } from '@pdfme/common';
 import { Student } from '../models/student.model';
-import { merge } from '@pdfme/manipulator'; // Add this import
+import { merge } from '@pdfme/manipulator';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalRef } from 'ng-zorro-antd/modal';
+import { PdfInputs, PdfTemplateType } from '../models/pdf-template.model';
+import { PDF_TEMPLATES } from '../config/pdf-templates.config';
 
 @Injectable({
   providedIn: 'root',
@@ -22,169 +17,150 @@ export class StudentGroupEnvironmentGenerateService {
     private message: NzMessageService,
   ) {}
 
-  async generateEnv01Pdf(studentGroups: StudentGroup[]) {
-    const template = env01v2Template;
-    const inputs = this.transformStudentGroupsToEn01Inputs(studentGroups);
-    const name = `รูปกลุ่ม`;
-    const result = await this.pdfGenerateService.generatePdf(
-      template,
-      [inputs],
-      name,
-    );
-    if (result) {
-      console.log('PDF generated successfully');
-    }
-    // Handle the result of the PDF generation
-    // For example, show a success message or handle errors
-    // this.message.success('PDF generated successfully');
-  }
-
-  async generateEnv02Pdf(studentGroups: StudentGroup[]) {
-    const template = env02Template;
-    // Note: now we're getting an array of input objects (one per page)
-    const paginatedInputs =
-      await this.transformStudentGroupsToEn02Inputs(studentGroups);
-    const name = `รูปนักเรียนสี่เหลี่ยม`;
-
-    console.log('Paginated Inputs:', paginatedInputs);
-
-    if (!paginatedInputs || paginatedInputs.length === 0) {
+  /**
+   * Generate PDF for a specific template type
+   */
+  async generatePdf(
+    templateType: PdfTemplateType,
+    studentGroups: StudentGroup[],
+  ): Promise<boolean> {
+    if (!studentGroups || studentGroups.length === 0) {
       this.message.warning('กรุณาเพิ่มข้อมูลก่อน');
       return false;
     }
 
-    const pageBlobs = await Promise.all(
-      paginatedInputs.map(async (pageInputs, index) => {
-        console.log(`Page ${index + 1} Inputs:`, pageInputs);
-        return await this.pdfGenerateService.createPdfBlob(template, [
-          pageInputs,
-        ]);
-      }),
-    );
+    const templateConfig = PDF_TEMPLATES[templateType];
 
+    // Generate PDF based on template type
+    switch (templateType) {
+      case PdfTemplateType.ENV_01:
+        return this.generateSinglePagePdf(templateConfig, studentGroups);
+      case PdfTemplateType.ENV_02:
+      case PdfTemplateType.ENV_03:
+      case PdfTemplateType.ENV_04:
+        return this.generateMultiPagePdf(templateConfig, studentGroups);
+      default:
+        this.message.error(`ไม่พบรูปแบบเอกสาร ${templateType}`);
+        return false;
+    }
+  }
+
+  /**
+   * Generate a single-page PDF (no pagination)
+   */
+  private async generateSinglePagePdf(
+    templateConfig: (typeof PDF_TEMPLATES)[PdfTemplateType],
+    studentGroups: StudentGroup[],
+  ): Promise<boolean> {
     try {
-      // Convert Blobs to ArrayBuffers
-      const pdfArrayBuffers = await Promise.all(
-        pageBlobs.map((blob) => blob.arrayBuffer()),
+      const inputs = this.transformStudentGroupsToEn01Inputs(studentGroups);
+      const fileName = `${templateConfig.fileName}-${new Date().toISOString().split('T')[0]}`;
+
+      const result = await this.pdfGenerateService.generatePdf(
+        templateConfig.template,
+        [inputs],
+        fileName,
       );
 
-      // Merge PDFs
-      const mergedPdfArrayBuffer = await merge(pdfArrayBuffers);
-
-      // Convert merged ArrayBuffer back to Blob
-      const mergedPdfBlob = new Blob([mergedPdfArrayBuffer], {
-        type: 'application/pdf',
-      });
-
-      // Download the merged PDF
-      this.pdfGenerateService.downloadBlob(mergedPdfBlob, `${name}.pdf`);
-
-      console.log('Successfully merged and downloaded PDF');
-      return true;
+      if (result) {
+        console.log('PDF generated successfully');
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error('Error merging PDFs:', error);
+      console.error(`Error generating ${templateConfig.displayName}:`, error);
+      this.message.error(
+        `เกิดข้อผิดพลาดในการสร้าง ${templateConfig.displayName}`,
+      );
       return false;
     }
   }
 
-  async generateEnv03Pdf(studentGroups: StudentGroup[]) {
-    const template = env03Template;
-    // Note: now we're getting an array of input objects (one per page)
-    const paginatedInputs =
-      await this.transformStudentGroupsToEn03Inputs(studentGroups);
-    const name = `รูปนักเรียนวงกลม`;
-
-    console.log('Paginated Inputs:', paginatedInputs);
-    if (!paginatedInputs || paginatedInputs.length === 0) {
-      this.message.warning('กรุณาเพิ่มข้อมูลก่อน');
-      return false;
-    }
-
-    const pageBlobs = await Promise.all(
-      paginatedInputs.map(async (pageInputs, index) => {
-        console.log(`Page ${index + 1} Inputs:`, pageInputs);
-        return await this.pdfGenerateService.createPdfBlob(template, [
-          pageInputs,
-        ]);
-      }),
-    );
-
+  /**
+   * Generate a multi-page PDF with merging
+   */
+  private async generateMultiPagePdf(
+    templateConfig: (typeof PDF_TEMPLATES)[PdfTemplateType],
+    studentGroups: StudentGroup[],
+  ): Promise<boolean> {
     try {
-      // Convert Blobs to ArrayBuffers
+      // Transform data based on template type
+      const paginatedInputs = await this.getPaginatedInputsForTemplate(
+        templateConfig.type,
+        studentGroups,
+      );
+
+      if (!paginatedInputs || paginatedInputs.length === 0) {
+        this.message.warning('ไม่มีข้อมูลสำหรับสร้างเอกสาร');
+        return false;
+      }
+
+      const fileName = `${templateConfig.fileName}-${new Date().toISOString().split('T')[0]}`;
+
+      // Generate page blobs
+      const pageBlobs = await Promise.all(
+        paginatedInputs.map(async (pageInputs, index) => {
+          console.log(`Page ${index + 1} Inputs:`, pageInputs);
+          return await this.pdfGenerateService.createPdfBlob(
+            templateConfig.template,
+            [pageInputs],
+          );
+        }),
+      );
+
+      // Merge PDFs
       const pdfArrayBuffers = await Promise.all(
         pageBlobs.map((blob) => blob.arrayBuffer()),
       );
 
-      // Merge PDFs
       const mergedPdfArrayBuffer = await merge(pdfArrayBuffers);
 
-      // Convert merged ArrayBuffer back to Blob
+      // Create and download the merged PDF
       const mergedPdfBlob = new Blob([mergedPdfArrayBuffer], {
         type: 'application/pdf',
       });
 
-      // Download the merged PDF
-      this.pdfGenerateService.downloadBlob(mergedPdfBlob, `${name}.pdf`);
-
-      console.log('Successfully merged and downloaded PDF');
-      return true;
-    } catch (error) {
-      console.error('Error merging PDFs:', error);
-      return false;
-    }
-  }
-
-  async generateEnv04Pdf(studentGroups: StudentGroup[]) {
-    const template = env04v2Template;
-    const paginatedInputs =
-      await this.transformStudentGroupsToEn04Inputs(studentGroups);
-
-    if (!paginatedInputs || paginatedInputs.length === 0) {
-      this.message.warning('กรุณาเพิ่มข้อมูลก่อน');
-      return false;
-    }
-    const name = `env-04-${new Date().toISOString().split('T')[0]}`;
-    const pageBlobs = await Promise.all(
-      paginatedInputs.map(async (pageInputs, index) => {
-        console.log(`Page ${index + 1} Inputs:`, pageInputs);
-        return await this.pdfGenerateService.createPdfBlob(template, [
-          pageInputs,
-        ]);
-      }),
-    );
-    try {
-      // Convert Blobs to ArrayBuffers
-      const pdfArrayBuffers = await Promise.all(
-        pageBlobs.map((blob) => blob.arrayBuffer()),
-      );
-
-      // Merge PDFs
-      const mergedPdfArrayBuffer = await merge(pdfArrayBuffers);
-
-      // Convert merged ArrayBuffer back to Blob
-      const mergedPdfBlob = new Blob([mergedPdfArrayBuffer], {
-        type: 'application/pdf',
-      });
-
-      // Download the merged PDF
       this.pdfGenerateService.downloadBlob(
         mergedPdfBlob,
-        `รูปนักเรียน + กลุ่ม ขนาดใหญ่.pdf`,
+        `${templateConfig.displayName}.pdf`,
       );
-
       console.log('Successfully merged and downloaded PDF');
       return true;
     } catch (error) {
-      console.error('Error merging PDFs:', error);
+      console.error(`Error generating ${templateConfig.displayName}:`, error);
+      this.message.error(
+        `เกิดข้อผิดพลาดในการสร้าง ${templateConfig.displayName}`,
+      );
       return false;
     }
   }
 
+  /**
+   * Get paginated inputs based on template type
+   */
+  private async getPaginatedInputsForTemplate(
+    templateType: PdfTemplateType,
+    studentGroups: StudentGroup[],
+  ): Promise<PdfInputs[]> {
+    switch (templateType) {
+      case PdfTemplateType.ENV_02:
+        return this.transformStudentGroupsToEn02Inputs(studentGroups);
+      case PdfTemplateType.ENV_03:
+        return this.transformStudentGroupsToEn03Inputs(studentGroups);
+      case PdfTemplateType.ENV_04:
+        return this.transformStudentGroupsToEn04Inputs(studentGroups);
+      default:
+        throw new Error(`Unsupported template type: ${templateType}`);
+    }
+  }
+
+  /**
+   * Transform data for ENV-01 template (group images)
+   */
   private transformStudentGroupsToEn01Inputs(
     studentGroups: StudentGroup[],
-  ): Record<string, any> {
-    const result: Record<string, any> = {};
-
+  ): PdfInputs {
+    const result: PdfInputs = {};
     const maxGroups = 5;
 
     // Process each group up to the maximum limit
@@ -192,9 +168,8 @@ export class StudentGroupEnvironmentGenerateService {
       const group = studentGroups[i];
       const groupIndex = i + 1; // 1-based index for template fields
 
-      // Dynamically set properties using bracket notation
       result[`text${groupIndex}`] = `กลุ่ม ${group.name}`;
-      result[`image${groupIndex}`] = group.image || ''; // Use empty string as fallback
+      result[`image${groupIndex}`] = group.image || '';
     }
 
     // Fill in empty values for unused template fields
@@ -206,73 +181,57 @@ export class StudentGroupEnvironmentGenerateService {
     return result;
   }
 
+  /**
+   * Transform data for ENV-02 template (rectangle student images)
+   */
   async transformStudentGroupsToEn02Inputs(
     studentGroups: StudentGroup[],
-  ): Promise<Record<string, any>[]> {
-    // Get all students from all groups into a flat array
+  ): Promise<PdfInputs[]> {
+    const templateConfig = PDF_TEMPLATES[PdfTemplateType.ENV_02];
+    const studentsPerPage = templateConfig.studentsPerPage || 25;
+
+    // Get all students from all groups
     const allStudents: Student[] = studentGroups.flatMap(
       (group) => group.students || [],
     );
 
-    // Calculate how many pages we need (25 students per page)
-    const studentsPerPage = 25;
-    const numberOfPages = Math.ceil(allStudents.length / studentsPerPage);
-
-    // Create an array to hold inputs for each page
-    const paginatedInputs: Record<string, any>[] = [];
-
-    // Process each page
-    for (let pageIndex = 0; pageIndex < numberOfPages; pageIndex++) {
-      const pageInputs: Record<string, any> = {};
-
-      // Calculate the start and end indices for students on this page
-      const startIndex = pageIndex * studentsPerPage;
-      const endIndex = Math.min(
-        startIndex + studentsPerPage,
-        allStudents.length,
-      );
-
-      // Process students for this page
-      for (let i = startIndex; i < endIndex; i++) {
-        const student = allStudents[i];
-        // The image index resets for each page (1-25)
-        const imageIndex = i - startIndex + 1;
-
-        // Set student image - use the regular image, not the round one
-        pageInputs[`image${imageIndex}`] = student.image || '';
-      }
-
-      // Fill in empty values for unused student image fields on this page
-      const studentsOnThisPage = endIndex - startIndex;
-      for (let i = studentsOnThisPage + 1; i <= studentsPerPage; i++) {
-        pageInputs[`image${i}`] = '';
-      }
-
-      // Add this page's inputs to our array
-      paginatedInputs.push(pageInputs);
-    }
-
-    return paginatedInputs;
+    return this.paginateStudentImages(allStudents, studentsPerPage, 'image');
   }
 
+  /**
+   * Transform data for ENV-03 template (round student images)
+   */
   async transformStudentGroupsToEn03Inputs(
     studentGroups: StudentGroup[],
-  ): Promise<Record<string, any>[]> {
-    // Get all students from all groups into a flat array
+  ): Promise<PdfInputs[]> {
+    const templateConfig = PDF_TEMPLATES[PdfTemplateType.ENV_03];
+    const studentsPerPage = templateConfig.studentsPerPage || 30;
+
+    // Get all students from all groups
     const allStudents: Student[] = studentGroups.flatMap(
       (group) => group.students || [],
     );
 
-    // Calculate how many pages we need (25 students per page)
-    const studentsPerPage = 30;
+    return this.paginateStudentImages(
+      allStudents,
+      studentsPerPage,
+      'imageRound',
+    );
+  }
+
+  /**
+   * Helper function to paginate student images
+   */
+  private paginateStudentImages(
+    allStudents: Student[],
+    studentsPerPage: number,
+    imageProperty: 'image' | 'imageRound',
+  ): PdfInputs[] {
     const numberOfPages = Math.ceil(allStudents.length / studentsPerPage);
+    const paginatedInputs: PdfInputs[] = [];
 
-    // Create an array to hold inputs for each page
-    const paginatedInputs: Record<string, any>[] = [];
-
-    // Process each page
     for (let pageIndex = 0; pageIndex < numberOfPages; pageIndex++) {
-      const pageInputs: Record<string, any> = {};
+      const pageInputs: PdfInputs = {};
 
       // Calculate the start and end indices for students on this page
       const startIndex = pageIndex * studentsPerPage;
@@ -284,11 +243,8 @@ export class StudentGroupEnvironmentGenerateService {
       // Process students for this page
       for (let i = startIndex; i < endIndex; i++) {
         const student = allStudents[i];
-        // The image index resets for each page (1-25)
         const imageIndex = i - startIndex + 1;
-
-        // Set student image - use the regular image, not the round one
-        pageInputs[`image${imageIndex}`] = student.imageRound || '';
+        pageInputs[`image${imageIndex}`] = student[imageProperty] || '';
       }
 
       // Fill in empty values for unused student image fields on this page
@@ -297,21 +253,20 @@ export class StudentGroupEnvironmentGenerateService {
         pageInputs[`image${i}`] = '';
       }
 
-      // Add this page's inputs to our array
       paginatedInputs.push(pageInputs);
     }
 
     return paginatedInputs;
   }
 
+  /**
+   * Transform data for ENV-04 template (student + group layout)
+   */
   async transformStudentGroupsToEn04Inputs(
     studentGroups: StudentGroup[],
-  ): Promise<Record<string, any>[]> {
-    // Create an array to hold inputs for each page
-    const paginatedInputs: Record<string, any>[] = [];
-
-    // Initialize the first page
-    let currentPageInputs: Record<string, any> = {};
+  ): Promise<PdfInputs[]> {
+    const paginatedInputs: PdfInputs[] = [];
+    let currentPageInputs: PdfInputs = {};
     let recordPosition = 1; // Position on current page (1-4)
 
     // Process each group
@@ -325,9 +280,7 @@ export class StudentGroupEnvironmentGenerateService {
       for (const student of group.students) {
         // If we've filled the current page (4 records), create a new page
         if (recordPosition > 4) {
-          // Add the completed page to our results
           paginatedInputs.push(currentPageInputs);
-          // Start a new page
           currentPageInputs = {};
           recordPosition = 1;
         }
@@ -342,7 +295,6 @@ export class StudentGroupEnvironmentGenerateService {
         currentPageInputs[`studentNickname${recordPosition}`] =
           `(น้อง${student.nickName})`;
 
-        // Move to the next record position
         recordPosition++;
       }
     }

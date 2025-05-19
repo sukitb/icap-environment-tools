@@ -16,6 +16,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { CommonModule } from '@angular/common';
+import { PdfTemplateType } from '../../models/pdf-template.model';
 
 @Component({
   selector: 'app-student-group-list',
@@ -95,12 +96,16 @@ import { CommonModule } from '@angular/common';
 
           <nz-dropdown-menu #pdfMenu="nzDropdownMenu">
             <ul nz-menu>
-              <li nz-menu-item (click)="getPdf('env-01')">รูปกลุ่ม</li>
-              <li nz-menu-item (click)="getPdf('env-02')">
+              <li nz-menu-item (click)="getPdf(PdfTemplateType.ENV_01)">
+                รูปกลุ่ม
+              </li>
+              <li nz-menu-item (click)="getPdf(PdfTemplateType.ENV_02)">
                 รูปนักเรียนสี่เหลี่ยม
               </li>
-              <li nz-menu-item (click)="getPdf('env-03')">รูปนักเรียนวงกลม</li>
-              <li nz-menu-item (click)="getPdf('env-04')">
+              <li nz-menu-item (click)="getPdf(PdfTemplateType.ENV_03)">
+                รูปนักเรียนวงกลม
+              </li>
+              <li nz-menu-item (click)="getPdf(PdfTemplateType.ENV_04)">
                 รูปนักเรียน + กลุ่ม ขนาดใหญ่
               </li>
             </ul>
@@ -226,6 +231,8 @@ export class StudentGroupListComponent {
   @ViewChildren(StudentGroupContainerComponent)
   groupContainers!: QueryList<StudentGroupContainerComponent>;
 
+  PdfTemplateType = PdfTemplateType;
+
   ngOnInit() {
     this.studentGroups.set(this.getInitialRowData());
   }
@@ -309,59 +316,28 @@ export class StudentGroupListComponent {
     });
   }
 
-  async getPdf(
-    envType: 'env-01' | 'env-02' | 'env-03' | 'env-04',
-  ): Promise<void> {
+  async getPdf(templateType: PdfTemplateType): Promise<void> {
     const allGroups = this.getAllGroups();
 
-    // Create a map of form types to their Thai names for better messages
-    const formNames = {
-      'env-01': 'กลุ่ม',
-      'env-02': 'รูปนักเรียนสี่เหลี่ยม',
-      'env-03': 'รูปนักเรียนวงกลม',
-      'env-04': 'รูปนักเรียน + กลุ่ม ขนาดใหญ่',
-    };
-
     // Create loading message
-    const loadingMessage = this.message.loading(
-      `กำลังสร้าง ${formNames[envType]}...`,
-      { nzDuration: 0 }, // Set duration to 0 to persist until manually removed
-    ).messageId;
+    const loadingMessage = this.message.loading(`กำลังสร้างเอกสาร...`, {
+      nzDuration: 0,
+    }).messageId;
 
     try {
-      // Call the appropriate PDF generation method
-      let result;
-      if (envType === 'env-01') {
-        result =
-          await this.studentGroupEnvironmentGenerateService.generateEnv01Pdf(
-            allGroups,
-          );
-      } else if (envType === 'env-02') {
-        result =
-          await this.studentGroupEnvironmentGenerateService.generateEnv02Pdf(
-            allGroups,
-          );
-      } else if (envType === 'env-03') {
-        result =
-          await this.studentGroupEnvironmentGenerateService.generateEnv03Pdf(
-            allGroups,
-          );
-      } else if (envType === 'env-04') {
-        result =
-          await this.studentGroupEnvironmentGenerateService.generateEnv04Pdf(
-            allGroups,
-          );
-      }
+      const result =
+        await this.studentGroupEnvironmentGenerateService.generatePdf(
+          templateType,
+          allGroups,
+        );
 
-      // Show success message if generation was successful
       if (result) {
-        this.message.success(`${formNames[envType]} สร้างสำเร็จ`);
+        this.message.success(`สร้างเอกสารสำเร็จ`);
       }
     } catch (error) {
-      console.error(`Error generating ${envType}:`, error);
-      this.message.error(`เกิดข้อผิดพลาดในการสร้าง ${formNames[envType]}`);
+      console.error(`Error generating PDF:`, error);
+      this.message.error(`เกิดข้อผิดพลาดในการสร้างเอกสาร`);
     } finally {
-      // Remove loading message regardless of success or failure
       this.message.remove(loadingMessage);
     }
   }
